@@ -14,7 +14,17 @@ static const Bool showbar           = True;     /* False means no bar */
 static const Bool topbar            = True;     /* False means bottom bar */
 
 /* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+#define MAX_TAGLEN 8
+#define MONS_TAGGED 2
+#define TAGMON(mon) (mon->num < MONS_TAGGED ? mon->num : MONS_TAGGED-1)
+static const char tags[][MAX_TAGLEN][MONS_TAGGED] = {
+	// Monitor 0,   Monitor 1, ...
+	{ "Browser",	"Terminal" },
+	{ "Terminal",	"Skype" },
+	{ "Tmp",	"Games" },
+	{ "4",		"Tmp" },
+	{ "5",		"5" },
+};
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -23,7 +33,9 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor */
 	{ "Gimp",     NULL,       NULL,       0,            True,        -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       False,       -1 },
+	{ "Firefox",  NULL,       NULL,       1,       False,       -1 },
+	{ "Google-chrome",  NULL,       NULL,       1,       False,       1 },
+	{ "UXTerm",  NULL,       NULL,       1,       False,       2 },
 };
 
 /* layout(s) */
@@ -55,7 +67,7 @@ static const char *termcmd[]  = { "uxterm", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
+	{ MODKEY,                       XK_r,      spawn,          {.v = dmenucmd } },
 	{ MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
