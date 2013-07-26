@@ -23,10 +23,10 @@ static const Rule rules[] = {
 	 */
 	/* class		instance	title	tag	isfloating	monitor */
 	{ "Gimp",		NULL,		NULL,	0,	True,		-1 },
-	{ "Firefox",		NULL,		NULL,	1,	False,		-1 },
-	{ "Google-chrome",	NULL,		NULL,	1,	False,		1 },
-	{ "UXTerm",		NULL,		NULL,	1,	False,		1 << 1 },
-	{ "Skype",		NULL,		NULL,	1,	False,		1 << 1 },
+	{ "Firefox",		NULL,		NULL,	1,	False,		0 },
+	{ "Google-chrome",	NULL,		NULL,	1,	False,		0 },
+	{ "UXTerm",		NULL,		NULL,	1,	False,		1 },
+	{ "Skype",		NULL,		NULL,	1 << 1,	False,		1 },
 };
 
 /* layout(s) */
@@ -36,9 +36,9 @@ static const Bool resizehints = False; /* True means respect size hints in tiled
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[╍]",      tile },    /* first entry is default */
-	{ "[≂]",      NULL },    /* no layout function means floating behavior */
-	{ "[☐]",      monocle },
+	{ "[]=",      tile },    /* first entry is default */
+	{ "<><",      NULL },    /* no layout function means floating behavior */
+	{ "[M]",      monocle },
 };
 
 /* key definitions */
