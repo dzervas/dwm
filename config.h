@@ -55,6 +55,7 @@ static const Layout layouts[] = {
 /* commands */
 static const char *dmenucmd[] = { "dmenu_run", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
 static const char *termcmd[]  = { "uxterm", NULL };
+static const char *sleepcmd[]  = { "systemctl", "suspend", NULL };
 
 static Key keys[] = {
 	/* modifier		key		function		argument */
@@ -85,6 +86,8 @@ static Key keys[] = {
 	{ MODKEY,		XK_Left,	shiftview,		{.i = -1 } },
 	{ MODKEY,		XK_Right,	shiftview,		{.i = +1 } },
 	{ MODKEY|ShiftMask,	XK_q,		quit,			{0} },
+	// Multimedia keys
+	{ 0,			0x1008ff2f,	spawn,			{.v = sleepcmd } },
 	TAGKEYS( XK_1,	 0 )
 	TAGKEYS( XK_2,	 1 )
 	TAGKEYS( XK_3,	 2 )
