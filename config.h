@@ -86,7 +86,6 @@ static Key keys[] = {
 	{ MODKEY,		XK_Left,	shiftview,		{.i = -1 } },
 	{ MODKEY,		XK_Right,	shiftview,		{.i = +1 } },
 	{ MODKEY|ShiftMask,	XK_q,		quit,			{0} },
-	{ ShiftMask,		XK_space,	togglekeyboard,		{0} },
 	// Multimedia keys
 	{ 0,			0x1008ff2f,	spawn,			{.v = sleepcmd } },
 	{ 0,			0x1008ff14,	spawn,			{.v = (const char*[]){"mpc", "toggle", NULL} } },
