@@ -74,7 +74,7 @@ static Key keys[] = {
 	{ MODKEY,		XK_t,		setlayout,		{.v = &layouts[0]} },
 	{ MODKEY,		XK_f,		setlayout,		{.v = &layouts[1]} },
 	{ MODKEY,		XK_m,		setlayout,		{.v = &layouts[2]} },
-	{ MODKEY|ShiftMask,	XK_f,		togglefullscreen,	{.v = &layouts[1]} },
+	{ MODKEY|ShiftMask,	XK_f,		togglefullscreen,	{0} },
 	{ MODKEY,		XK_space,	setlayout,		{0} },
 	{ MODKEY|ShiftMask,	XK_space,	togglefloating,		{0} },
 	{ MODKEY,		XK_0,		view,			{.ui = ~0 } },
@@ -86,8 +86,15 @@ static Key keys[] = {
 	{ MODKEY,		XK_Left,	shiftview,		{.i = -1 } },
 	{ MODKEY,		XK_Right,	shiftview,		{.i = +1 } },
 	{ MODKEY|ShiftMask,	XK_q,		quit,			{0} },
+	{ ShiftMask,		XK_space,	togglekeyboard,		{0} },
 	// Multimedia keys
 	{ 0,			0x1008ff2f,	spawn,			{.v = sleepcmd } },
+	{ 0,			0x1008ff14,	spawn,			{.v = (const char*[]){"mpc", "toggle", NULL} } },
+	{ 0,			0x1008ff17,	spawn,			{.v = (const char*[]){"mpc", "next", NULL} } },
+	{ 0,			0x1008ff16,	spawn,			{.v = (const char*[]){"mpc", "prev", NULL} } },
+	{ 0,			0x1008ff13,	spawn,			{.v = (const char*[]){"mpc", "volume", "+1", NULL} } },
+	{ 0,			0x1008ff11,	spawn,			{.v = (const char*[]){"mpc", "volume", "-1", NULL} } },
+	{ 0,			0x1008ff14,	spawn,			{.v = (const char*[]){"mpc", "clear", NULL} } },
 	TAGKEYS( XK_1,	 0 )
 	TAGKEYS( XK_2,	 1 )
 	TAGKEYS( XK_3,	 2 )

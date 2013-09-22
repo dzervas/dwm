@@ -210,7 +210,6 @@ static void tagmon(const Arg *arg);
 static void tile(Monitor *);
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
-static void togglefullscreen(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void unfocus(Client *c, Bool setfocus);
@@ -233,7 +232,9 @@ static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
+// Custom
 static void shiftview(const Arg *arg);
+static void togglefullscreen(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
@@ -1684,16 +1685,6 @@ togglefloating(const Arg *arg) {
 }
 
 void
-togglefullscreen(const Arg *arg) {
-	if(!selmon->sel)
-		return;
-	if(selmon->sel->isfullscreen)
-		setfullscreen(selmon->sel, False);
-	else
-		setfullscreen(selmon->sel, True);
-}
-
-void
 toggletag(const Arg *arg) {
 	unsigned int newtags;
 
@@ -2129,4 +2120,15 @@ shiftview(const Arg *arg) {
 			| selmon->tagset[selmon->seltags] << (LENGTH(tags) + arg->i);
 
 	view(&shifted);
+}
+
+// Function to toggle a window fullscreen
+void
+togglefullscreen(const Arg *arg) {
+	if(!selmon->sel)
+		return;
+	if(selmon->sel->isfullscreen)
+		setfullscreen(selmon->sel, False);
+	else
+		setfullscreen(selmon->sel, True);
 }
