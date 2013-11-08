@@ -31,8 +31,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <X11/cursorfont.h>
+#include <X11/extensions/XInput2.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
+#include <X11/XF86keysym.h>
 #include <X11/Xlib.h>
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
@@ -171,13 +173,15 @@ static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
+static void genericevent(XEvent *e);
+static XIDeviceInfo *getdevicebyname(XIDeviceInfo *devs, int ndev, const char *name);
+static void getdevices(const char *user);
 static Bool getrootptr(int *x, int *y);
 static long getstate(Window w);
 static Bool gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, Bool focused);
 static void grabkeys(void);
 static void incnmaster(const Arg *arg);
-static void keypress(XEvent *e);
 static void killclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
@@ -256,7 +260,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[EnterNotify] = enternotify,
 	[Expose] = expose,
 	[FocusIn] = focusin,
-	[KeyPress] = keypress,
+	[GenericEvent] = genericevent,
 	[MappingNotify] = mappingnotify,
 	[MapRequest] = maprequest,
 	[MotionNotify] = motionnotify,
@@ -273,6 +277,14 @@ static Drw *drw;
 static Fnt *fnt;
 static Monitor *mons, *selmon;
 static Window root;
+static int xi2opcode;
+static unsigned char ptrmask[XIMaskLen(XI_LASTEVENT)];
+static unsigned char kbdmask[XIMaskLen(XI_LASTEVENT)];
+static unsigned char hcmask[XIMaskLen(XI_HierarchyChanged)];
+static XIEventMask ptrevm = { -1, LENGTH(ptrmask), ptrmask };
+static XIEventMask kbdevm = { -1, LENGTH(kbdmask), kbdmask };
+static XIEventMask hcevm = { XIAllDevices, sizeof(hcmask), hcmask };
+static XIGrabModifiers anymodifier[] = { { XIAnyModifier, 0 } };
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -303,7 +315,6 @@ applyrules(Client *c) {
 	XGetClassHint(dpy, c->win, &ch);
 	class    = ch.res_class ? ch.res_class : broken;
 	instance = ch.res_name  ? ch.res_name  : broken;
-
 	for(i = 0; i < LENGTH(rules); i++) {
 		r = &rules[i];
 		if((!r->title || strstr(c->name, r->title))
@@ -485,7 +496,7 @@ cleanup(void) {
 	for(m = mons; m; m = m->next)
 		while(m->stack)
 			unmanage(m->stack, False);
-	XUngrabKey(dpy, AnyKey, AnyModifier, root);
+	XIUngrabKeycode(dpy, kbdevm.deviceid, XIAnyKeycode, root, LENGTH(anymodifier), anymodifier);
 	while(mons)
 		cleanupmon(mons);
 	drw_cur_free(drw, cursor[CurNormal]);
@@ -500,7 +511,7 @@ cleanup(void) {
 	drw_clr_free(scheme[SchemeSel].fg);
 	drw_free(drw);
 	XSync(dpy, False);
-	XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
+	XISetFocus(dpy, kbdevm.deviceid, PointerRoot, CurrentTime);
 	XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
 }
 
@@ -834,7 +845,7 @@ focus(Client *c) {
 		setfocus(c);
 	}
 	else {
-		XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+		XISetFocus(dpy, kbdevm.deviceid, PointerRoot, CurrentTime);
 		XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
 	}
 	selmon->sel = c;
@@ -889,6 +900,51 @@ focusstack(const Arg *arg) {
 	}
 }
 
+void
+genericevent(XEvent *e) {
+	/* I discovered that XSendEvent can send us events that as not GenericEvent */
+	if(e->type != GenericEvent)
+		return;
+	if(e->xcookie.extension == xi2opcode)
+	{
+		unsigned int i;
+
+		if(!XGetEventData(dpy, &e->xcookie)) {
+			fputs("warning: failed to retrieve cookie data of a XI2 event\n", stderr);
+			XFreeEventData(dpy, &e->xcookie);
+			return;
+		}
+		switch(e->xcookie.evtype) {
+			case XI_KeyPress: {
+				KeySym keysym;
+				XIDeviceEvent *ev = (XIDeviceEvent *)e->xcookie.data;
+
+				if(ev->deviceid != kbdevm.deviceid)
+					break;
+				keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->detail, 0);
+				for(i = 0; keys[i].func; i++)
+					if(keysym == keys[i].keysym && CLEANMASK(keys[i].mod) == CLEANMASK(ev->mods.effective))
+						keys[i].func(&(keys[i].arg));
+			}
+			break;
+			case XI_HierarchyChanged: {
+				XIHierarchyEvent *ev = (XIHierarchyEvent *)e->xcookie.data;
+
+				if(ev->flags & XIMasterRemoved) {
+					for(i = 0; i < ev->num_info; i++) {
+						if(ev->info[i].flags && ev->info[i].deviceid == kbdevm.deviceid)
+							/* our keyboard device has been removed! let's recreate it or we'll never get focus again */
+							getdevices(devicename);
+					}
+					break;
+				}
+			}
+			break;
+		}
+		XFreeEventData(dpy, &e->xcookie);
+	}
+}
+
 Atom
 getatomprop(Client *c, Atom prop) {
 	int di;
@@ -904,6 +960,55 @@ getatomprop(Client *c, Atom prop) {
 	return atom;
 }
 
+XIDeviceInfo*
+getdevicebyname(XIDeviceInfo * const devs, const int ndev, const char *name) {
+	unsigned int i, j;
+	const char *devname;
+	XIDeviceInfo *result = NULL;
+
+	for (i = 0; i < ndev; i++) {
+		if(devs[i].use != XIMasterPointer)
+			continue;
+		devname = devs[i].name;
+		for(j = 0; name[j] && devname[j] && name[j] == devname[j]; j++);
+		if(name[j] || !devname[j] || strcmp(&devname[j], " pointer"))
+			continue;
+		result = &devs[i];
+		break;
+	}
+	return result;
+}
+
+void
+getdevices(const char *name) {
+	int ndevices;
+	XIDeviceInfo *devs, *ptr;
+	const XIAddMasterInfo addm = {.type = XIAddMaster, .name = devicename, .send_core = True, .enable = True };
+
+	devs = XIQueryDevice(dpy, XIAllMasterDevices, &ndevices);
+	if(!devs)
+		die("fatal: can't get list of input devices\n");
+	ptr = getdevicebyname(devs, ndevices, name);
+	if(!ptr) {
+		if(XIChangeHierarchy(dpy, (XIAnyHierarchyChangeInfo *)&addm, 1) == Success) {
+			XIFreeDeviceInfo(devs);
+			devs = XIQueryDevice(dpy, XIAllMasterDevices, &ndevices);
+			if(!devs)
+				die("fatal: can't get list of input devices\n");
+			ptr = getdevicebyname(devs, ndevices, name);
+		}
+	}
+	if(ptr) {
+		ptrevm.deviceid = ptr->deviceid;
+		kbdevm.deviceid = ptr->attachment;
+	}
+	else {
+		ptrevm.deviceid = 2; /* Virtual core pointer */
+		kbdevm.deviceid = 3; /* Virtual core keyboard */
+	}
+	XIFreeDeviceInfo(devs);
+	XISelectEvents(dpy, root, &kbdevm, 1);
+}
 Bool
 getrootptr(int *x, int *y) {
 	int di;
@@ -981,16 +1086,16 @@ void
 grabkeys(void) {
 	updatenumlockmask();
 	{
-		unsigned int i, j;
-		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
+		unsigned int i;
 		KeyCode code;
 
-		XUngrabKey(dpy, AnyKey, AnyModifier, root);
-		for(i = 0; i < LENGTH(keys); i++)
-			if((code = XKeysymToKeycode(dpy, keys[i].keysym)))
-				for(j = 0; j < LENGTH(modifiers); j++)
-					XGrabKey(dpy, code, keys[i].mod | modifiers[j], root,
-						 True, GrabModeAsync, GrabModeAsync);
+		XIUngrabKeycode(dpy, kbdevm.deviceid, XIAnyKeycode, root, LENGTH(anymodifier), anymodifier);
+		for(i = 0; keys[i].func; i++)
+			if((code = XKeysymToKeycode(dpy, keys[i].keysym))) {
+					XIGrabModifiers modifiers[] = { { keys[i].mod, 0 }, { keys[i].mod|LockMask, 0 },
+						{ keys[i].mod|numlockmask, 0 }, { keys[i].mod|numlockmask|LockMask, 0 } };
+					XIGrabKeycode(dpy, kbdevm.deviceid, code, root, XIGrabModeAsync, XIGrabModeAsync, True, &kbdevm, LENGTH(modifiers), modifiers);
+				}
 	}
 }
 
@@ -1010,21 +1115,6 @@ isuniquegeom(XineramaScreenInfo *unique, size_t n, XineramaScreenInfo *info) {
 	return True;
 }
 #endif /* XINERAMA */
-
-void
-keypress(XEvent *e) {
-	unsigned int i;
-	KeySym keysym;
-	XKeyEvent *ev;
-
-	ev = &e->xkey;
-	keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
-	for(i = 0; i < LENGTH(keys); i++)
-		if(keysym == keys[i].keysym
-		&& CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
-		&& keys[i].func)
-			keys[i].func(&(keys[i].arg));
-}
 
 void
 killclient(const Arg *arg) {
@@ -1083,6 +1173,7 @@ manage(Window w, XWindowAttributes *wa) {
 	updatewindowtype(c);
 	updatesizehints(c);
 	updatewmhints(c);
+	XISetClientPointer(dpy, w, ptrevm.deviceid);
 	XSelectInput(dpy, w, EnterWindowMask|FocusChangeMask|PropertyChangeMask|StructureNotifyMask);
 	grabbuttons(c, False);
 	if(!c->isfloating)
@@ -1472,7 +1563,7 @@ sendevent(Client *c, Atom proto) {
 void
 setfocus(Client *c) {
 	if(!c->neverfocus) {
-		XSetInputFocus(dpy, c->win, RevertToPointerRoot, CurrentTime);
+		XISetFocus(dpy, kbdevm.deviceid, c->win, CurrentTime);
 		XChangeProperty(dpy, root, netatom[NetActiveWindow],
  		                XA_WINDOW, 32, PropModeReplace,
  		                (unsigned char *) &(c->win), 1);
@@ -1540,7 +1631,20 @@ setmfact(const Arg *arg) {
 
 void
 setup(void) {
+	int event, error, major = 2, minor = 1;
 	XSetWindowAttributes wa;
+
+	if (!XQueryExtension(dpy, "XInputExtension", &xi2opcode, &event, &error))
+		 die("X Input extension not available.\n");
+	if (XIQueryVersion(dpy, &major, &minor) == BadRequest)
+		die("XI2 not available. Server supports %d.%d\n", major, minor);
+
+	/* setup some vars */
+	memset(kbdmask, 0, sizeof(kbdmask));
+	memset(hcmask, 0, sizeof(kbdmask));
+	XISetMask(kbdmask, XI_KeyPress);
+	XISetMask(hcmask, XI_HierarchyChanged);
+	getdevices(devicename);
 
 	/* clean up any zombies immediately */
 	sigchld(0);
@@ -1592,7 +1696,10 @@ setup(void) {
 	                |EnterWindowMask|LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
 	XChangeWindowAttributes(dpy, root, CWEventMask|CWCursor, &wa);
 	XSelectInput(dpy, root, wa.event_mask);
+	XISelectEvents(dpy, root, &hcevm, 1);
 	grabkeys();
+	/* move pointer device to our screen */
+	XIWarpPointer(dpy, ptrevm.deviceid, None, root, 0, 0, 0, 0, sw/2, sh/2);
 }
 
 void
@@ -1771,7 +1878,7 @@ unfocus(Client *c, Bool setfocus) {
 	grabbuttons(c, False);
 	XSetWindowBorder(dpy, c->win, scheme[SchemeNorm].border->rgb);
 	if(setfocus) {
-		XSetInputFocus(dpy, root, RevertToPointerRoot, CurrentTime);
+		XISetFocus(dpy, kbdevm.deviceid, root, CurrentTime);
 		XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
 	}
 }
@@ -1789,7 +1896,7 @@ unmanage(Client *c, Bool destroyed) {
 		XGrabServer(dpy);
 		XSetErrorHandler(xerrordummy);
 		XConfigureWindow(dpy, c->win, CWBorderWidth, &wc); /* restore border */
-		XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
+		XIUngrabButton(dpy, ptrevm.deviceid, XIAnyButton, c->win, LENGTH(anymodifier), anymodifier);
 		setclientstate(c, WithdrawnState);
 		XSync(dpy, False);
 		XSetErrorHandler(xerror);
