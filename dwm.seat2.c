@@ -287,7 +287,7 @@ static XIEventMask hcevm = { XIAllDevices, sizeof(hcmask), hcmask };
 static XIGrabModifiers anymodifier[] = { { XIAnyModifier, 0 } };
 
 /* configuration, allows nested code to access above variables */
-#include "config.h"
+#include "config.seat2.h"
 
 struct Pertag {
 	unsigned int curtag, prevtag; /* current and previous tag */
@@ -2125,7 +2125,7 @@ void
 updatestatus(void) {
 	Monitor* m;
 	if(!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
-		strcpy(stext, "dwm-"VERSION);
+		strcpy(stext, "dwm.seat2-"VERSION);
 	for(m = mons; m; m = m->next)
 		drawbar(m);
 }

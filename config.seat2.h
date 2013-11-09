@@ -1,6 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 
-static char devicename[] = "Virtual Core";
+static char devicename[] = "Seat2";
 
 /* appearance */
 static const char font[]	     = "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*";
