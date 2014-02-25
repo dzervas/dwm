@@ -23,10 +23,9 @@ static const Rule rules[] = {
 	 */
 	/* class		instance	title	tag	isfloating	monitor */
 	{ "Gimp",		NULL,		NULL,	0,	True,		-1 },
-	{ "Firefox",		NULL,		NULL,	1,	False,		0 },
-	{ "Google-chrome",	NULL,		NULL,	1,	False,		0 },
-	{ "UXTerm",		NULL,		NULL,	1,	False,		1 },
-	{ "Skype",		NULL,		NULL,	1 << 1,	False,		1 },
+	{ "Firefox",		NULL,		NULL,	1,	False,		1 },
+	{ "UXTerm",		NULL,		NULL,	1,	False,		0 },
+	{ "Skype",		NULL,		NULL,	2,	False,		1 },
 };
 
 /* layout(s) */

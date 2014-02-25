@@ -244,7 +244,6 @@ static char stext[256];
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
 static int bh, blw = 0;      /* bar geometry */
-static Bool firstrun = True;
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
@@ -308,8 +307,7 @@ applyrules(Client *c) {
 		r = &rules[i];
 		if((!r->title || strstr(c->name, r->title))
 		&& (!r->class || strstr(class, r->class))
-		&& (!r->instance || strstr(instance, r->instance))
-		&& firstrun)
+		&& (!r->instance || strstr(instance, r->instance)))
 		{
 			c->isfloating = r->isfloating;
 			c->tags |= r->tags;
@@ -1419,7 +1417,6 @@ scan(void) {
 		if(wins)
 			XFree(wins);
 	}
-	firstrun = False;
 }
 
 void
