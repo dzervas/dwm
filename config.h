@@ -10,8 +10,12 @@ static const char selbgcolor[]      = "#232526";
 static const char selfgcolor[]      = "#d0d0d0";
 static const unsigned int borderpx  = 1;	 /* border pixel of windows */
 static const unsigned int snap      = 1;	/* snap pixel */
-static const Bool showbar	    = True;     /* False means no bar */
-static const Bool topbar	     = True;     /* False means bottom bar */
+static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows selected monitor, >0: pin systray to moni */
+static const unsigned int systrayspacing = 2;   /* systray spacing */
+static const Bool systraypinningfailfirst = True;   /* True: if pinning fails, display systray on the first monitor, F */
+static const Bool showsystray = True;     /* False means no systray */
+static const Bool showbar = True;     /* False means no bar */
+static const Bool topbar = True;     /* False means bottom bar */
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
