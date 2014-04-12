@@ -27,6 +27,7 @@ static const Rule rules[] = {
 	 */
 	/* class		instance	title	tag	isfloating	monitor */
 	{ "Gimp",		NULL,		NULL,	0,	True,		-1 },
+	{ "KeePass2",		NULL,		NULL,	0,	True,		-1 },
 
 	{ "Steam",		NULL,		NULL,	2,	False,		0 },
 	{ "UXTerm",		NULL,		NULL,	1,	False,		0 },
