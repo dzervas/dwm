@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
 /* appearance */
-static const char font[]	     = "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*";
+static const char font[]	     = "-*-Consola-medium-r-*-*-9-*-*-*-*-*-*-*";
 static const char normbordercolor[] = "#101010";
 static const char normbgcolor[]     = "#101010";
 static const char normfgcolor[]     = "#d0d0d0";
@@ -27,8 +27,8 @@ static const Rule rules[] = {
 	 */
 	/* class		instance	title	tag	isfloating	monitor */
 	{ "Gimp",		NULL,		NULL,	0,	True,		-1 },
-	{ "KeePass2",		NULL,		NULL,	0,	True,		-1 },
 
+	{ "KeePass2",		NULL,		NULL,	3,	True,		0 },
 	{ "Steam",		NULL,		NULL,	2,	False,		0 },
 	{ "UXTerm",		NULL,		NULL,	1,	False,		0 },
 
