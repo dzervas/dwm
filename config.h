@@ -28,7 +28,7 @@ static const Rule rules[] = {
 	/* class		instance	title	tag	isfloating	monitor */
 	{ "Gimp",		NULL,		NULL,	0,	True,		-1 },
 
-	{ "KeePass2",		NULL,		NULL,	3,	True,		0 },
+	{ "Mutt",		NULL,		NULL,	3,	False,		0 },
 	{ "Steam",		NULL,		NULL,	2,	False,		0 },
 	{ "UXTerm",		NULL,		NULL,	1,	False,		0 },
 
@@ -62,12 +62,14 @@ static const Layout layouts[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-static const char *termcmd[]  = { "uxterm", NULL };
+static const char *mailcmd[]  = { "uxterm", "-class", "mutt", "-e", "mutt", NULL };
 static const char *sleepcmd[]  = { "systemctl", "suspend", NULL };
+static const char *termcmd[]  = { "uxterm", NULL };
 
 static Key keys[] = {
 	/* modifier		key		function		argument */
 	{ MODKEY,		XK_r,		spawn,			{.v = dmenucmd } },
+	{ MODKEY,		XK_p,		spawn,			{.v = mailcmd } },
 	{ MODKEY,		XK_Return,	spawn,			{.v = termcmd } },
 	{ MODKEY,		XK_b,		togglebar,		{0} },
 	{ MODKEY,		XK_j,		focusstack,		{.i = +1 } },
