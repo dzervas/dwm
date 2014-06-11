@@ -28,9 +28,9 @@ static const Rule rules[] = {
 	/* class		instance	title	tag	isfloating	monitor */
 	{ "Gimp",		NULL,		NULL,	0,	True,		-1 },
 
-	{ "Mutt",		NULL,		NULL,	3,	False,		0 },
-	{ "Steam",		NULL,		NULL,	2,	False,		0 },
 	{ "UXTerm",		NULL,		NULL,	1,	False,		0 },
+	{ "Steam",		NULL,		NULL,	2,	False,		0 },
+	{ "Mutt",		NULL,		"Mutt",	4,	False,		0 },
 
 	{ "Firefox",		NULL,		NULL,	1,	False,		1 },
 	{ "Skype",		NULL,		NULL,	2,	False,		1 },
@@ -62,7 +62,7 @@ static const Layout layouts[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-static const char *mailcmd[]  = { "uxterm", "-class", "mutt", "-e", "mutt", NULL };
+static const char *mailcmd[]  = { "uxterm", "-title", "Mutt", "-class", "Mutt", "-e", "mutt", NULL };
 static const char *sleepcmd[]  = { "systemctl", "suspend", NULL };
 static const char *termcmd[]  = { "uxterm", NULL };
 
