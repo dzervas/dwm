@@ -101,9 +101,12 @@ static Key keys[] = {
 	{ 0,			0x1008ff14,	spawn,			{.v = (const char*[]){"mpc", "toggle", NULL} } },
 	{ 0,			0x1008ff17,	spawn,			{.v = (const char*[]){"mpc", "next", NULL} } },
 	{ 0,			0x1008ff16,	spawn,			{.v = (const char*[]){"mpc", "prev", NULL} } },
-	{ 0,			0x1008ff13,	spawn,			{.v = (const char*[]){"mpc", "volume", "+1", NULL} } },
-	{ 0,			0x1008ff11,	spawn,			{.v = (const char*[]){"mpc", "volume", "-1", NULL} } },
-	{ 0,			0x1008ff12,	spawn,			{.v = (const char*[]){"mpc", "clear", NULL} } },
+//	{ 0,			0x1008ff13,	spawn,			{.v = (const char*[]){"mpc", "volume", "+1", NULL} } },
+//	{ 0,			0x1008ff11,	spawn,			{.v = (const char*[]){"mpc", "volume", "-1", NULL} } },
+//	{ 0,			0x1008ff12,	spawn,			{.v = (const char*[]){"mpc", "clear", NULL} } },
+	{ 0,			0x1008ff13,	spawn,			{.v = (const char*[]){"amixer", "sset", "Headphone", "1+", NULL} } },
+	{ 0,			0x1008ff11,	spawn,			{.v = (const char*[]){"amixer", "sset", "Headphone", "1-", NULL} } },
+	{ 0,			0x1008ff12,	spawn,			{.v = (const char*[]){"amixer", "sset", "Headphone", "toggle", NULL} } },
 	TAGKEYS( XK_1,	 0 )
 	TAGKEYS( XK_2,	 1 )
 	TAGKEYS( XK_3,	 2 )
