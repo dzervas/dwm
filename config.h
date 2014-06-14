@@ -30,10 +30,10 @@ static const Rule rules[] = {
 
 	{ "UXTerm",		NULL,		NULL,	1,	False,		0 },
 	{ "Steam",		NULL,		NULL,	2,	False,		0 },
-	{ "Mutt",		NULL,		"Mutt",	4,	False,		0 },
 
 	{ "Firefox",		NULL,		NULL,	1,	False,		1 },
 	{ "Skype",		NULL,		NULL,	2,	False,		1 },
+	{ "Mutt",		NULL,		"Mutt",	4,	False,		1 },
 };
 
 /* layout(s) */
