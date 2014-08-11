@@ -65,7 +65,7 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
 static const char *mailcmd[]  = { "uxterm", "-title", "Mutt", "-class", "Mutt", "-e", "mutt", NULL };
-static const char *sleepcmd[]  = { "systemctl", "suspend", NULL };
+static const char *sleepcmd[]  = { "sudo", "pm-suspend", NULL };
 static const char *termcmd[]  = { "uxterm", NULL };
 
 static Key keys[] = {
