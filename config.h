@@ -18,7 +18,16 @@ static const Bool showbar = True;     /* False means no bar */
 static const Bool topbar = True;     /* False means bottom bar */
 
 /* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+/*static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9"};*/
+#ifndef XINERAMA
+static const char tags[8][8] = { "Firefox", "Terminal", "Editor", "Files", "Games", "Tmp", "IM", "Mail"};
+#else
+static const char tags[2][5][8] = {
+	{ "Firefox", "IM", "Tmp" , "Mail"},
+	{ "Terminal", "Editor", "Files", "Games", "Tmp"}
+};
+#endif
+
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -64,14 +73,14 @@ static const Layout layouts[] = {
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-static const char *mailcmd[]  = { "uxterm", "-title", "Mutt", "-class", "Mutt", "-e", "mutt", NULL };
-static const char *sleepcmd[]  = { "sudo", "pm-suspend", NULL };
+/*static const char *mailcmd[]  = { "uxterm", "-title", "Mutt", "-class", "Mutt", "-e", "mutt", NULL };*/
+/*static const char *sleepcmd[]  = { "sudo", "pm-suspend", NULL };*/
 static const char *termcmd[]  = { "uxterm", NULL };
 
 static Key keys[] = {
 	/* modifier		key		function		argument */
 	{ MODKEY,		XK_r,		spawn,			{.v = dmenucmd } },
-	{ MODKEY,		XK_p,		spawn,			{.v = mailcmd } },
+/*	{ MODKEY,		XK_p,		spawn,			{.v = mailcmd } },*/
 	{ MODKEY,		XK_Return,	spawn,			{.v = termcmd } },
 	{ MODKEY,		XK_b,		togglebar,		{0} },
 	{ MODKEY,		XK_j,		focusstack,		{.i = +1 } },
@@ -99,7 +108,7 @@ static Key keys[] = {
 	{ MODKEY,		XK_Right,	shiftview,		{.i = +1 } },
 	{ MODKEY|ShiftMask,	XK_q,		quit,			{0} },
 	// Multimedia keys
-	{ 0,			0x1008ff2f,	spawn,			{.v = sleepcmd } },
+/*	{ 0,			0x1008ff2f,	spawn,			{.v = sleepcmd } },*/
 	{ 0,			0x1008ff14,	spawn,			{.v = (const char*[]){"mpc", "toggle", NULL} } },
 	{ 0,			0x1008ff17,	spawn,			{.v = (const char*[]){"mpc", "next", NULL} } },
 	{ 0,			0x1008ff16,	spawn,			{.v = (const char*[]){"mpc", "prev", NULL} } },

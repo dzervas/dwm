@@ -474,7 +474,11 @@ buttonpress(XEvent *e) {
 	if(ev->window == selmon->barwin) {
 		i = x = 0;
 		do
+#ifdef XINERAMA
+			x += TEXTW(tags[0][i]);
+#else
 			x += TEXTW(tags[i]);
+#endif
 		while(ev->x >= x && ++i < LENGTH(tags));
 		if(i < LENGTH(tags)) {
 			click = ClkTagBar;
@@ -822,10 +826,19 @@ drawbar(Monitor *m) {
 			urg |= c->tags;
 	}
 	x = 0;
+#ifdef XINERAMA
+	for(i = 0; i < LENGTH(tags[0]); i++) {
+		w = TEXTW(tags[0][i]);
+#else
 	for(i = 0; i < LENGTH(tags); i++) {
 		w = TEXTW(tags[i]);
+#endif
 		drw_setscheme(drw, m->tagset[m->seltags] & 1 << i ? &scheme[SchemeSel] : &scheme[SchemeNorm]);
+#ifdef XINERAMA
+		drw_text(drw, x, 0, w, bh, tags[0][i], urg & 1 << i);
+#else
 		drw_text(drw, x, 0, w, bh, tags[i], urg & 1 << i);
+#endif
 		drw_rect(drw, x, 0, w, bh, m == selmon && selmon->sel && selmon->sel->tags & 1 << i,
 		           occ & 1 << i, urg & 1 << i);
 		x += w;
